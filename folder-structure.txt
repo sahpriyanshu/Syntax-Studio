@@ -1,0 +1,32 @@
+syntax-studio/
+├── app/
+│   ├── api/
+│   │   ├── analyze/
+│   │   │   └── route.ts
+│   │   ├── auth/
+│   │   │   └── [...nextauth]/
+│   │   │       └── route.ts
+│   │   ├── compile/
+│   │   │   └── route.ts
+│   │   └── generate/
+│   │       └── route.ts
+│   ├── components/
+│   │   ├── navigation.tsx
+│   │   └── ui/
+│   │       └── ... (shadcn/ui components)
+│   ├── workspace/
+│   │   ├── components/
+│   │   │   ├── ai-prompt.tsx
+│   │   │   └── editor.tsx
+│   │   └── page.tsx
+│   ├── try-this/
+│   │   └── page.tsx
+│   ├── layout.tsx
+│   └── page.tsx
+├── lib/
+│   ├── auth.ts
+│   └── utils.ts
+├── types/
+│   └── next-auth.d.ts
+└── .env
+
