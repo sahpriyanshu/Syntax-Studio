@@ -26,32 +26,32 @@ export function ThemeDropdown({ theme, onThemeChange, variant = "default" }: The
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            "flex h-9 items-center gap-1.5 rounded-md px-3 text-sm transition-colors",
+            "flex h-9 items-center gap-1.5 px-3 text-sm transition-colors",
             variant === "default" 
-              ? "bg-white/5 hover:bg-white/10 border border-white/10"
-              : "hover:bg-white/5",
+              ? "bg-black/20 hover:bg-black/30 border border-white/20 hover:border-white/30 text-white"
+              : "hover:bg-black/20",
             "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
           )}
         >
-          <span className="text-white/80">{currentTheme?.name}</span>
-          <ChevronDown className="h-4 w-4 text-white/60" />
+          <span>{currentTheme?.name}</span>
+          <ChevronDown className="h-4 w-4" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-[200px] bg-[#1C1C1C] border-white/10 text-white"
+        className="w-[200px] max-h-[300px] overflow-y-auto bg-black/20 backdrop-blur-sm border border-white/20 text-white"
       >
         <div className="py-2">
-          <div className="px-2 pb-2 text-xs font-medium text-white/40 uppercase">
+          <div className="px-2 pb-2 text-xs font-medium text-white uppercase">
             Dark Themes
           </div>
           {editorThemes.dark.map((item) => (
             <DropdownMenuItem
               key={item.id}
               className={cn(
-                "flex items-center gap-2 px-2 py-1.5 cursor-pointer text-sm text-white/80 focus:text-white",
-                "hover:bg-white/5 focus:bg-white/5",
-                theme === item.id && "bg-white/5"
+                "flex items-center gap-2 px-2 py-1.5 cursor-pointer text-sm text-white",
+                "hover:bg-black/30 hover:border-white/30",
+                theme === item.id && "bg-black/30"
               )}
               onClick={() => onThemeChange(item.id)}
             >
@@ -65,17 +65,17 @@ export function ThemeDropdown({ theme, onThemeChange, variant = "default" }: The
             </DropdownMenuItem>
           ))}
         </div>
-        <div className="py-2 border-t border-white/10">
-          <div className="px-2 pb-2 text-xs font-medium text-white/40 uppercase">
+        <div className="py-2 border-t border-white/20">
+          <div className="px-2 pb-2 text-xs font-medium text-white uppercase">
             Light Themes
           </div>
           {editorThemes.light.map((item) => (
             <DropdownMenuItem
               key={item.id}
               className={cn(
-                "flex items-center gap-2 px-2 py-1.5 cursor-pointer text-sm text-white/80 focus:text-white",
-                "hover:bg-white/5 focus:bg-white/5",
-                theme === item.id && "bg-white/5"
+                "flex items-center gap-2 px-2 py-1.5 cursor-pointer text-sm text-white",
+                "hover:bg-black/30 hover:border-white/30",
+                theme === item.id && "bg-black/30"
               )}
               onClick={() => onThemeChange(item.id)}
             >

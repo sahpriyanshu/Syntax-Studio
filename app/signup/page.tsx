@@ -83,26 +83,20 @@ export default function SignUpPage() {
                 checked={agreedToTerms}
                 onCheckedChange={(checked) => setAgreedToTerms(checked as boolean)}
               />
-              <label
-                htmlFor="terms"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                I agree to the{" "}
-                <Link href="/terms" className="text-primary hover:underline">
-                  Terms of Use
-                </Link>{" "}
-                and{" "}
-                <Link href="/privacy" className="text-primary hover:underline">
-                  Privacy Policy
-                </Link>
-              </label>
+              <div className="space-y-1 leading-none">
+                <Label htmlFor="terms" className="text-sm text-gray-500">
+                  Please agree to the{" "}
+                  <Link href="/terms" className="text-blue-600 hover:underline">
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" className="text-blue-600 hover:underline">
+                    Privacy Policy
+                  </Link>{" "}
+                  to continue
+                </Label>
+              </div>
             </div>
-
-            {!agreedToTerms && (
-              <p className="text-sm text-muted-foreground text-center">
-                Please agree to the Terms and Privacy Policy to continue
-              </p>
-            )}
 
             <div className="grid grid-cols-2 gap-4">
               <Button
@@ -156,7 +150,7 @@ export default function SignUpPage() {
                 <Label htmlFor="name">Name</Label>
                 <Input
                   id="name"
-                  placeholder="John Doe"
+                  placeholder="priyanshu sah"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -167,7 +161,7 @@ export default function SignUpPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="john@example.com"
+                  placeholder="priyanshu@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required

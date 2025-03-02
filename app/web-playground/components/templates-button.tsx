@@ -11,12 +11,12 @@ interface TemplatesButtonProps {
 export function TemplatesButton({ onClick }: TemplatesButtonProps) {
   return (
     <Button 
-      variant="default" 
+      variant="outline"
       size="default" 
       onClick={onClick}
-      className="bg-[#1e1e1e] text-[#ffffff] hover:bg-[#2d2d2d] px-3 py-1.5 h-8 text-sm font-normal rounded-sm"
+      className="bg-black/20 border border-white/20 text-white hover:bg-black/30 hover:border-white/30 rounded-none"
     >
-      <FileCode className="h-4 w-4 mr-2 opacity-70" />
+      <FileCode className="h-4 w-4 mr-2" />
       Templates
     </Button>
   )

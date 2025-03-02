@@ -1,32 +1,61 @@
 syntax-studio/
-├── app/
-│   ├── api/
-│   │   ├── analyze/
-│   │   │   └── route.ts
-│   │   ├── auth/
-│   │   │   └── [...nextauth]/
-│   │   │       └── route.ts
-│   │   ├── compile/
-│   │   │   └── route.ts
-│   │   └── generate/
-│   │       └── route.ts
-│   ├── components/
-│   │   ├── navigation.tsx
-│   │   └── ui/
-│   │       └── ... (shadcn/ui components)
-│   ├── workspace/
-│   │   ├── components/
-│   │   │   ├── ai-prompt.tsx
-│   │   │   └── editor.tsx
-│   │   └── page.tsx
-│   ├── try-this/
-│   │   └── page.tsx
-│   ├── layout.tsx
-│   └── page.tsx
-├── lib/
-│   ├── auth.ts
-│   └── utils.ts
-├── types/
-│   └── next-auth.d.ts
-└── .env
-
+├── app/                                 # Next.js 13+ app directory
+│   ├── api/                            # API routes directory
+│   │   ├── compile/                    # Code compilation endpoints
+│   │   │   └── route.ts               # Handles code compilation requests
+│   │   ├── execute/                    # Code execution endpoints
+│   │   │   └── route.ts               # Handles direct code execution
+│   │   ├── judge0/                     # Judge0 API integration
+│   │   │   └── route.ts               # Advanced code execution with language support
+│   │   └── verify-keys/                # API key verification
+│   │       └── route.ts               # Validates API keys and permissions
+│   │
+│   ├── code-workspace/                 # Main code editor workspace
+│   │   ├── components/                 # Workspace-specific components
+│   │   │   ├── Editor.tsx             # Monaco editor component
+│   │   │   ├── OutputWindow.tsx       # Code execution output display
+│   │   │   ├── LanguageSelector.tsx   # Programming language selector
+│   │   │   └── ThemeSelector.tsx      # Editor theme selector
+│   │   ├── layout.tsx                 # Workspace layout configuration
+│   │   └── page.tsx                   # Main workspace page
+│   │
+│   ├── lib/                           # Shared utilities and configurations
+│   │   ├── judge0Config.ts            # Judge0 API configuration and fallback logic
+│   │   ├── defineTheme.ts             # Editor theme definitions
+│   │   └── utils.ts                   # Common utility functions
+│   │
+│   ├── components/                     # Shared components
+│   │   ├── ui/                        # UI components (buttons, inputs, etc.)
+│   │   │   ├── button.tsx
+│   │   │   ├── dropdown.tsx
+│   │   │   └── toast.tsx
+│   │   └── layout/                    # Layout components
+│   │       ├── Header.tsx
+│   │       └── Footer.tsx
+│   │
+│   ├── layout.tsx                     # Root layout configuration
+│   └── page.tsx                       # Landing page
+│
+├── public/                            # Static files directory
+│   ├── assets/                        # Images and other assets
+│   │   ├── icons/
+│   │   └── images/
+│   └── themes/                        # Editor theme files
+│
+├── styles/                            # Global styles
+│   └── globals.css                    # Global CSS configurations
+│
+├── types/                             # TypeScript type definitions
+│   ├── editor.d.ts                    # Editor-related types
+│   └── api.d.ts                       # API-related types
+│
+├── config/                            # Configuration files
+│   ├── languages.ts                   # Supported languages config
+│   └── themes.ts                      # Editor themes config
+│
+├── .env                               # Environment variables
+├── .env.example                       # Example environment variables
+├── .gitignore                         # Git ignore rules
+├── package.json                       # Project dependencies and scripts
+├── tsconfig.json                      # TypeScript configuration
+└── README.md                          # Project documentation

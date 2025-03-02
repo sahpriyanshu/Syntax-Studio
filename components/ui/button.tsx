@@ -5,22 +5,22 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
-        default: "bg-[#1e1e1e] text-[#ffffff] hover:bg-[#2d2d2d] border border-[#333333]",
-        destructive: "bg-[#1e1e1e] text-[#ffffff] hover:bg-[#2d2d2d] border border-[#333333]",
-        outline: "bg-[#1e1e1e] text-[#ffffff] hover:bg-[#2d2d2d] border border-[#333333]",
-        secondary: "bg-[#1e1e1e] text-[#ffffff] hover:bg-[#2d2d2d] border border-[#333333]",
-        ghost: "bg-transparent text-[#ffffff] hover:bg-[#2d2d2d] border border-[#333333]",
-        link: "bg-[#1e1e1e] text-[#ffffff] hover:bg-[#2d2d2d] border border-[#333333]",
+        default: "bg-black/20 border border-white/20 text-white hover:bg-black/30 hover:border-white/30",
+        destructive: "bg-black/20 border border-white/20 text-white hover:bg-black/30 hover:border-white/30",
+        outline: "bg-black/20 border border-white/20 text-white hover:bg-black/30 hover:border-white/30",
+        secondary: "bg-black/20 border border-white/20 text-white hover:bg-black/30 hover:border-white/30",
+        ghost: "bg-transparent text-white hover:bg-black/30 hover:border-white/30",
+        link: "bg-black/20 border border-white/20 text-white hover:bg-black/30 hover:border-white/30",
       },
       size: {
-        default: "h-8 px-3 py-1.5",
-        sm: "h-7 rounded-sm px-2.5",
-        lg: "h-9 rounded-sm px-4",
-        icon: "h-8 w-8",
+        default: "h-[28px] px-3",
+        sm: "h-[24px] px-2.5",
+        lg: "h-[32px] px-4",
+        icon: "h-[28px] w-[28px]",
       },
     },
     defaultVariants: {

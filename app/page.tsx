@@ -1,6 +1,6 @@
 "use client"
 import Link from "next/link"
-import { motion } from "framer-motion"
+import { motion, useScroll, useTransform } from "framer-motion"
 import {
   Terminal,
   Cpu,
@@ -26,7 +26,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 const FeatureCard = ({ icon: Icon, title, description, items }) => {
   return (
@@ -57,7 +57,83 @@ const LanguageCard = ({ title, description, href, color = "border-blue-500", ico
   )
 }
 
+// Language configurations
+const popularLanguages = [
+  {
+    title: "Python Compiler",
+    description: "Write and run Python code with our online compiler",
+    href: "/code-workspace?lang=python",
+    color: "border-blue-500",
+    icon: FileCode
+  },
+  {
+    title: "Java Compiler",
+    description: "Compile and run Java programs in your browser",
+    href: "/code-workspace?lang=java",
+    color: "border-orange-500",
+    icon: Coffee
+  },
+  {
+    title: "JavaScript Compiler",
+    description: "Test and run JavaScript code instantly",
+    href: "/code-workspace?lang=javascript",
+    color: "border-yellow-500",
+    icon: Braces
+  }
+]
+
+const otherLanguages = [
+  {
+    title: "C++ Compiler",
+    description: "Write, compile and run C++ code online",
+    href: "/code-workspace?lang=cpp",
+    color: "border-purple-500",
+    icon: Code2
+  },
+  {
+    title: "C# Compiler",
+    description: "Develop C# applications in your browser",
+    href: "/code-workspace?lang=csharp",
+    color: "border-green-500",
+    icon: Hash
+  },
+  {
+    title: "TypeScript Compiler",
+    description: "Write and compile TypeScript code online",
+    href: "/code-workspace?lang=typescript",
+    color: "border-blue-400",
+    icon: Codesandbox
+  },
+  {
+    title: "PHP Compiler",
+    description: "Run PHP scripts directly in your browser",
+    href: "/code-workspace?lang=php",
+    color: "border-indigo-500",
+    icon: FileCode
+  },
+  {
+    title: "Ruby Compiler",
+    description: "Write and execute Ruby code online",
+    href: "/code-workspace?lang=ruby",
+    color: "border-red-500",
+    icon: Ruby
+  },
+  {
+    title: "Go Compiler",
+    description: "Build and run Go programs instantly",
+    href: "/code-workspace?lang=go",
+    color: "border-cyan-500",
+    icon: Codesandbox
+  }
+]
+
 export default function LandingPage() {
+  const { scrollYProgress } = useScroll()
+  const backgroundY = useTransform(scrollYProgress, [0, 1], ['0%', '100%'])
+  const opacity = useTransform(scrollYProgress, [0, 0.5, 1], [1, 0.5, 0.2])
+
+  const [hoveredCard, setHoveredCard] = useState<number | null>(null)
+
   useEffect(() => {
     const hash = window.location.hash
     if (hash) {
@@ -71,6 +147,14 @@ export default function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#3B4371] to-[#F3904F]">
       {/* Hero Section */}
+      <motion.div 
+        className="absolute inset-0 -z-10"
+        style={{
+          background: "radial-gradient(circle at 50% var(--mouse-y), rgba(243,144,79,0.15) 0%, rgba(59,67,113,0.15) 80%)",
+          y: backgroundY,
+          opacity
+        }}
+      />
       <section className="px-4 py-20 md:py-32 mx-auto max-w-7xl">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
           <motion.div
@@ -205,7 +289,7 @@ console.log(result); // Optimized code`}
       </section>
 
       {/* Language Selection Section */}
-      <section className="px-4 py-20 mx-auto max-w-7xl">
+      <section className="px-4 py-20 mx-auto max-w-7xl" id="languages">
         <motion.div
           className="text-center mb-16"
           initial={{ opacity: 0, y: 20 }}
@@ -220,79 +304,156 @@ console.log(result); // Optimized code`}
 
         <div className="space-y-8">
           <div>
-            <h3 className="text-xl font-semibold text-white mb-4">Most Popular</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <LanguageCard
-                title="Python Compiler"
-                description="Write and run Python code with our online compiler"
-                href="/code-workspace?language=python"
-                color="border-blue-500"
-                icon={FileCode}
-              />
-              <LanguageCard
-                title="Java Compiler"
-                description="Compile and run Java programs in your browser"
-                href="/code-workspace?language=java"
-                color="border-orange-500"
-                icon={Coffee}
-              />
-              <LanguageCard
-                title="JavaScript Compiler"
-                description="Test and run JavaScript code instantly"
-                href="/code-workspace?language=javascript"
-                color="border-yellow-500"
-                icon={Braces}
-              />
+            <h3 className="text-2xl font-bold text-white mb-8">Most Popular</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {popularLanguages.map((lang, index) => (
+                <motion.div
+                  key={lang.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <LanguageCard {...lang} />
+                </motion.div>
+              ))}
             </div>
           </div>
 
           <div>
-            <h3 className="text-xl font-semibold text-white mb-4">Other Languages</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <LanguageCard
-                title="C++ Compiler"
-                description="Write, compile and run C++ code online"
-                href="/code-workspace?language=cpp"
-                color="border-purple-500"
-                icon={Hash}
-              />
-              <LanguageCard
-                title="C# Compiler"
-                description="Develop C# applications in your browser"
-                href="/code-workspace?language=csharp"
-                color="border-green-500"
-                icon={Hash}
-              />
-              <LanguageCard
-                title="TypeScript Compiler"
-                description="Write and compile TypeScript code online"
-                href="/code-workspace?language=typescript"
-                color="border-blue-400"
-                icon={Braces}
-              />
-              <LanguageCard
-                title="PHP Compiler"
-                description="Run PHP scripts directly in your browser"
-                href="/code-workspace?language=php"
-                color="border-indigo-500"
-                icon={FileCode}
-              />
-              <LanguageCard
-                title="Ruby Compiler"
-                description="Write and execute Ruby code online"
-                href="/code-workspace?language=ruby"
-                color="border-red-500"
-                icon={Ruby}
-              />
-              <LanguageCard
-                title="Go Compiler"
-                description="Build and run Go programs instantly"
-                href="/code-workspace?language=go"
-                color="border-cyan-500"
-                icon={Codesandbox}
-              />
+            <h3 className="text-2xl font-bold text-white mb-8">Other Languages</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {otherLanguages.map((lang, index) => (
+                <motion.div
+                  key={lang.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <LanguageCard {...lang} />
+                </motion.div>
+              ))}
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Web Playground Features */}
+      <section className="px-4 py-20 mx-auto max-w-7xl bg-white/5 backdrop-blur relative overflow-hidden" id="web-playground-features">
+        <motion.div 
+          className="absolute inset-0 bg-gradient-to-r from-[#3B4371]/20 to-[#F3904F]/20"
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 90, 0],
+          }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            ease: "linear"
+          }}
+        />
+        
+        <div className="text-center mb-16 relative">
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Web Playground Features</h2>
+            <p className="text-xl text-white/80 max-w-3xl mx-auto">
+              A powerful, feature-rich development environment right in your browser
+            </p>
+          </motion.div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 relative">
+          {[
+            {
+              icon: Layout,
+              title: "Live Preview",
+              description: "See your changes in real-time with our instant preview feature. Perfect for web development and debugging.",
+              features: ["Instant visual feedback", "Responsive design preview", "Mobile and desktop views"]
+            },
+            {
+              icon: FileCode,
+              title: "Multiple File Support",
+              description: "Work with multiple files and file types simultaneously. Perfect for complex web projects.",
+              features: ["HTML, CSS, and JavaScript", "File tree organization", "Easy file management"]
+            },
+            {
+              icon: Share2,
+              title: "Share Your Work",
+              description: "Share your projects instantly with others using a simple link or QR code.",
+              features: ["One-click sharing", "QR code generation", "Downlaod as a ZIP"]
+            },
+            {
+              icon: PenTool,
+              title: "Smart Editor",
+              description: "Feature-rich code editor with syntax highlighting and intelligent suggestions.",
+              features: ["Syntax highlighting", "Auto-completion", "Multiple themes"]
+            },
+            {
+              icon: Smartphone,
+              title: "Responsive Testing",
+              description: "Test your projects across different screen sizes and devices.",
+              features: ["Mobile preview", "Tablet preview", "Desktop preview"]
+            },
+            {
+              icon: Codesandbox,
+              title: "Project Templates",
+              description: "Start quickly with pre-built templates for various web projects.",
+              features: ["Starter templates", "Framework templates", "Custom templates"]
+            }
+          ].map((feature, index) => (
+            <motion.div
+              key={feature.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: index * 0.1 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+              onHoverStart={() => setHoveredCard(index)}
+              onHoverEnd={() => setHoveredCard(null)}
+            >
+              <Card className="p-6 h-full bg-white/10 backdrop-blur border-white/20 text-white relative overflow-hidden group">
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-r from-[#3B4371]/20 to-[#F3904F]/20"
+                  initial={false}
+                  animate={{
+                    scale: hoveredCard === index ? 1.2 : 1,
+                    opacity: hoveredCard === index ? 1 : 0
+                  }}
+                  transition={{ duration: 0.3 }}
+                />
+                <motion.div
+                  className="relative z-10"
+                  initial={false}
+                  animate={{
+                    y: hoveredCard === index ? -5 : 0
+                  }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <feature.icon className="w-12 h-12 mb-4 text-[#F3904F] transition-transform group-hover:scale-110" />
+                  <h3 className="text-xl font-bold mb-2">{feature.title}</h3>
+                  <p className="text-white/80 mb-4">{feature.description}</p>
+                  <ul className="text-sm text-white/70 space-y-2">
+                    {feature.features.map((item, i) => (
+                      <motion.li
+                        key={i}
+                        initial={false}
+                        animate={{
+                          x: hoveredCard === index ? 10 : 0
+                        }}
+                        transition={{ duration: 0.2, delay: i * 0.1 }}
+                      >
+                        • {item}
+                      </motion.li>
+                    ))}
+                  </ul>
+                </motion.div>
+              </Card>
+            </motion.div>
+          ))}
         </div>
       </section>
 

@@ -1,0 +1,13 @@
+.btn {
+  padding: 8px 16px;  /* Ensure consistent padding */
+  height: 40px;       /* Set explicit height for both buttons */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* If you have specific classes for these buttons, you can target them directly */
+.get-started-btn,
+.sign-in-btn {
+  height: 40px;  /* Make sure both buttons have same height */
+} 

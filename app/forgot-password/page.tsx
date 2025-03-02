@@ -18,16 +18,36 @@ export default function ForgotPasswordPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // TODO: Implement actual password reset logic here
-    // This is a mock implementation
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      const response = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      })
 
-    toast({
-      title: "Reset link sent",
-      description: "If an account exists for this email, you will receive a password reset link.",
-    })
+      const data = await response.json()
 
-    setIsLoading(false)
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send reset link")
+      }
+
+      toast({
+        title: "Reset link sent",
+        description: "If an account exists for this email, you will receive a password reset link.",
+      })
+
+      setEmail("")
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to send reset link",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -73,4 +93,3 @@ export default function ForgotPasswordPage() {
     </div>
   )
 }
-
