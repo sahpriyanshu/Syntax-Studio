@@ -56,9 +56,12 @@ export default function CommunityPage() {
                   <p className="text-sm text-gray-600 mb-4">
                     Contribute to our open source projects and help improve Syntax Studio.
                   </p>
-                  <Button variant="outline" className="w-full">
-                    View GitHub
-                  </Button>
+                  <a href="https://github.com/sahpriyanshu" target="_blank" rel="noopener noreferrer">
+                    <Button variant="outline" className="w-full">
+                      View GitHub
+                    </Button>
+                  </a>
+
                 </div>
               </div>
             </Card>
@@ -82,11 +85,11 @@ export default function CommunityPage() {
             <div className="space-y-4">
               <Card className="p-4">
                 <h3 className="font-medium">Monthly Community Meetup</h3>
-                <p className="text-sm text-gray-600">February 1, 2024 - Virtual</p>
+                <p className="text-sm text-gray-600">June 1, 2024 - Virtual</p>
               </Card>
               <Card className="p-4">
                 <h3 className="font-medium">Code Review Workshop</h3>
-                <p className="text-sm text-gray-600">February 15, 2024 - Virtual</p>
+                <p className="text-sm text-gray-600">July 15, 2024 - Virtual</p>
               </Card>
             </div>
           </section>

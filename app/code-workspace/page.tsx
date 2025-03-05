@@ -56,8 +56,20 @@ export default function WorkspacePage() {
   }, [code, language])
 
   useEffect(() => {
+    // Load saved theme from localStorage
+    const savedTheme = localStorage.getItem("code-workspace-theme")
+    if (savedTheme) {
+      setTheme(savedTheme as ThemeId)
+    }
+  }, [])
+
+  useEffect(() => {
     if (theme) {
-      defineTheme(theme)
+      defineTheme(theme).catch(error => {
+        console.error('Error applying theme:', error)
+        // Fallback to vs-dark on error
+        setTheme("vs-dark")
+      })
     }
   }, [theme])
 
@@ -68,6 +80,7 @@ export default function WorkspacePage() {
 
   const handleThemeChange = (newTheme: ThemeId) => {
     setTheme(newTheme)
+    localStorage.setItem("code-workspace-theme", newTheme)
   }
 
   const checkUsageLimit = () => {

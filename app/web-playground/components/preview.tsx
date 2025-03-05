@@ -1,19 +1,21 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState, useCallback, forwardRef, useImperativeHandle } from "react"
 import { cn } from "@/lib/utils"
 import { Spinner } from "@/components/ui/spinner"
-import { Button } from "@/components/ui/button"
 import { RefreshCw } from "lucide-react"
 
 interface PreviewProps {
   files: Record<string, string>
   previewFile: string
-  mode: "desktop" | "mobile"
   width?: string
 }
 
-export function Preview({ files, previewFile, mode, width = "100%" }: PreviewProps) {
+interface PreviewRef {
+  updatePreview: () => void
+}
+
+export const Preview = forwardRef<PreviewRef, PreviewProps>(({ files, previewFile, width = "100%" }: PreviewProps, ref) => {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -29,6 +31,15 @@ export function Preview({ files, previewFile, mode, width = "100%" }: PreviewPro
       const cssContent = files["styles.css"] || ""
       const jsContent = files["script.js"] || ""
 
+      // Check if CSS and JS are linked
+      const hasCssLink = /<link[^>]*href=["']styles\.css["'][^>]*>/i.test(htmlContent)
+      const hasJsScript = /<script[^>]*src=["']script\.js["'][^>]*>/i.test(htmlContent)
+
+      // Process HTML to remove existing CSS and JS links/scripts
+      let processedHtml = htmlContent
+        .replace(/<link[^>]*href=["']styles\.css["'][^>]*>/gi, '')
+        .replace(/<script[^>]*src=["']script\.js["'][^>]*><\/script>/gi, '')
+
       const content = `
         <!DOCTYPE html>
         <html>
@@ -43,16 +54,17 @@ export function Preview({ files, previewFile, mode, width = "100%" }: PreviewPro
               body {
                 min-height: 100vh;
                 font-family: system-ui, -apple-system, sans-serif;
+                background: white;
               }
               
-              /* Inject user CSS */
-              ${cssContent}
+              /* Only inject CSS if it's linked */
+              ${hasCssLink ? cssContent : ''}
             </style>
           </head>
           <body>
-            ${htmlContent}
+            ${processedHtml}
             <script>
-              // Error handling
+              // Error handling wrapper
               window.onerror = function(msg, url, line, col, error) {
                 window.parent.postMessage({
                   type: 'error',
@@ -61,12 +73,18 @@ export function Preview({ files, previewFile, mode, width = "100%" }: PreviewPro
                 return false;
               };
 
-              // User JavaScript
-              try {
-                ${jsContent}
-              } catch (error) {
-                console.error('Error:', error.message);
-              }
+              // Only inject JS if it's linked
+              ${hasJsScript ? `
+                try {
+                  ${jsContent}
+                } catch (error) {
+                  console.error('Error:', error.message);
+                  window.parent.postMessage({
+                    type: 'error',
+                    message: 'JavaScript Error: ' + error.message
+                  }, '*');
+                }
+              ` : ''}
             </script>
           </body>
         </html>
@@ -85,50 +103,39 @@ export function Preview({ files, previewFile, mode, width = "100%" }: PreviewPro
   }, [files, previewFile])
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      updatePreview();
-    }, 100); // Small delay to ensure template files are loaded
-
-    return () => clearTimeout(timeoutId);
-  }, [files, previewFile, updatePreview]);
+    const timeoutId = setTimeout(updatePreview, 100)
+    return () => clearTimeout(timeoutId)
+  }, [files, previewFile, updatePreview])
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === 'error') {
-        setError(event.data.message);
+      if (event.data?.type === 'error') {
+        setError(event.data.message)
       }
-    };
+    }
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
+  }, [])
 
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  // Expose updatePreview to parent through ref
+  useImperativeHandle(ref, () => ({
+    updatePreview
+  }))
 
   return (
-    <div className="h-full bg-background p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-sm font-medium">Preview</h3>
-        <Button variant="ghost" size="sm" onClick={updatePreview}>
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Refresh
-        </Button>
-      </div>
-      <div
-        className={cn(
-          "relative h-[calc(100%-3rem)] overflow-hidden rounded-lg border bg-white",
-          mode === "mobile" && "max-w-[375px] mx-auto"
-        )}
-        style={{ width: mode === "mobile" ? "375px" : width }}
+    <div className="h-full flex flex-col">
+      {error && (
+        <div className="p-2 text-sm text-red-500 bg-red-50 border-b">
+          {error}
+        </div>
+      )}
+      <div 
+        className="relative h-full overflow-hidden rounded-lg border bg-white"
+        style={{ width }}
       >
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/50">
-            <Spinner />
-          </div>
-        )}
-        {error && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/50">
-            <div className="bg-destructive text-destructive-foreground p-4 rounded-md">
-              {error}
-            </div>
+            <Spinner className="h-6 w-6" />
           </div>
         )}
         <iframe
@@ -140,4 +147,6 @@ export function Preview({ files, previewFile, mode, width = "100%" }: PreviewPro
       </div>
     </div>
   )
-}
+})
+
+Preview.displayName = "Preview"

@@ -17,31 +17,46 @@ const monacoThemes = {
 const themeFileMap: Record<string, string> = {
   'dracula': 'Dracula',
   'monokai': 'Monokai',
-  'material-darker': 'Material Darker',
+  'monokai-bright': 'Monokai Bright',
   'night-owl': 'Night Owl',
-  'aura': 'Aura Dark',
-  'tomorrow-night': 'Tomorrow-Night',
+  'oceanic-next': 'Oceanic Next',
   'solarized-dark': 'Solarized-dark',
   'solarized-light': 'Solarized-light',
   'github-dark': 'GitHub Dark',
   'github-light': 'GitHub Light',
-  'quiet-light': 'Quiet Light',
-  'material-lighter': 'Material Lighter',
-  'min-light': 'Min Light',
-  'oceanic-next': 'Oceanic Next',
-  'cobalt': 'Cobalt',
-  'twilight': 'Twilight',
+  'tomorrow-night': 'Tomorrow-Night',
+  'tomorrow-night-blue': 'Tomorrow-Night-Blue',
+  'tomorrow-night-bright': 'Tomorrow-Night-Bright',
+  'tomorrow-night-eighties': 'Tomorrow-Night-Eighties',
   'tomorrow': 'Tomorrow',
+  'twilight': 'Twilight',
+  'cobalt': 'Cobalt',
+  'cobalt2': 'Cobalt2',
+  'nord': 'Nord',
   'xcode': 'Xcode_default',
-  'chrome-devtools': 'Chrome DevTools'
+  'chrome-devtools': 'Chrome DevTools',
+  'vs-dark': 'vs-dark',
+  'vs-light': 'vs-light'
 }
 
 async function loadTheme(themeName: string) {
   try {
+    // Built-in themes don't need to be loaded
+    if (themeName === 'vs-dark' || themeName === 'vs-light') {
+      return null;
+    }
+
     // Use the theme file map to get the correct filename
-    const themeFileName = themeFileMap[themeName] || themeName
+    const themeFileName = themeFileMap[themeName]
+    if (!themeFileName) {
+      console.warn(`Theme file mapping not found for: ${themeName}`)
+      return null
+    }
+
     const response = await fetch(`/themes/${themeFileName}.json`)
-    if (!response.ok) throw new Error(`Failed to load theme: ${themeName}`)
+    if (!response.ok) {
+      throw new Error(`Failed to load theme: ${themeName}`)
+    }
     return await response.json()
   } catch (error) {
     console.error('Error loading theme:', error)
@@ -49,26 +64,33 @@ async function loadTheme(themeName: string) {
   }
 }
 
-const defineTheme = (theme: string) => {
-  return new Promise((res) => {
-    if (["vs-dark", "vs-light", "hc-black", "hc-light"].includes(theme)) {
-      // These themes are built-in, no need to load external files
-      res(null)
-    } else {
-      Promise.all([
-        loader.init(),
-        loadTheme(theme)
-      ]).then(([monaco, themeData]) => {
-        if (themeData) {
-          monaco.editor.defineTheme(theme, themeData)
-        }
-        res(null)
-      }).catch(error => {
-        console.error('Error defining theme:', error)
-        res(null)
-      })
+export async function defineTheme(theme: string) {
+  try {
+    // Get the Monaco loader
+    const monaco = await loader.init()
+
+    // Handle built-in themes
+    if (theme === 'vs-dark' || theme === 'vs-light') {
+      monaco.editor.setTheme(theme)
+      return
     }
-  })
+
+    const themeData = await loadTheme(theme)
+    if (!themeData) {
+      console.warn(`Theme data not found for: ${theme}. Falling back to vs-dark.`)
+      monaco.editor.setTheme('vs-dark')
+      return
+    }
+
+    // Define the theme
+    monaco.editor.defineTheme(theme, themeData)
+    monaco.editor.setTheme(theme)
+  } catch (error) {
+    console.error('Error defining theme:', error)
+    // Fallback to vs-dark on error
+    const monaco = await loader.init()
+    monaco.editor.setTheme('vs-dark')
+  }
 }
 
-export { defineTheme, monacoThemes }
+export { monacoThemes }

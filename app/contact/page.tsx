@@ -71,7 +71,7 @@ export default function ContactPage() {
                     <Phone className="h-5 w-5 text-primary mt-1" />
                     <div>
                       <h3 className="font-medium">Phone</h3>
-                      <p className="text-sm text-gray-600">+1 (555) 123-4567</p>
+                      <p className="text-sm text-gray-600">+91 123-4567-890</p>
                     </div>
                   </div>
                 </Card>
@@ -82,11 +82,11 @@ export default function ContactPage() {
                     <div>
                       <h3 className="font-medium">Office</h3>
                       <p className="text-sm text-gray-600">
-                        123 Code Street
+                        Madh Island
                         <br />
-                        Developer City, DC 12345
+                        Madh Market
                         <br />
-                        United States
+                        India
                       </p>
                     </div>
                   </div>
