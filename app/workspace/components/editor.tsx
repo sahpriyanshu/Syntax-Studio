@@ -1,44 +1,18 @@
 "use client"
 
 import * as React from "react"
-import Editor, { Monaco } from "@monaco-editor/react"
+import Editor from "@monaco-editor/react"
 import { ThemeId } from "@/lib/themes"
 import { defineTheme } from "@/app/lib/defineTheme"
 
 interface CodeEditorProps {
-  value: string
-  onChange: (value: string | undefined) => void
+  code: string
+  onChange: (value: string) => void
+  language: string
   theme: ThemeId
 }
 
-export function CodeEditor({ value, onChange, theme }: CodeEditorProps) {
-  // Detect language from content
-  const detectLanguage = React.useCallback((code: string) => {
-    if (code.includes('def ') || code.includes('print(') || code.startsWith('#')) {
-      return 'python'
-    }
-    return 'javascript'
-  }, [])
-
-  const language = React.useMemo(() => detectLanguage(value), [value, detectLanguage])
-
-  const handleEditorWillMount = (monaco: Monaco) => {
-    // Configure Python language
-    monaco.languages.register({ id: 'python' })
-    monaco.languages.setMonarchTokensProvider('python', {
-      tokenizer: {
-        root: [
-          [/#.*/, 'comment'],
-          [/"""[\s\S]*?"""|'''[\s\S]*?'''/, 'comment'],  // Multi-line strings/comments
-          [/"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/, 'string'],
-          [/[0-9]+(\.[0-9]+)?/, 'number'],
-          [/\b(def|class|if|else|elif|for|while|try|except|import|from|as|return|break|continue|pass|raise|with|in|is|not|and|or|True|False|None)\b/, 'keyword'],
-          [/[a-zA-Z_]\w*(?=\s*\()/, 'function'],
-        ]
-      }
-    })
-  }
-
+export function CodeEditor({ code, onChange, language, theme }: CodeEditorProps) {
   // Handle theme changes
   React.useEffect(() => {
     if (theme) {
@@ -46,25 +20,36 @@ export function CodeEditor({ value, onChange, theme }: CodeEditorProps) {
     }
   }, [theme])
 
+  const handleEditorChange = (value: string | undefined) => {
+    onChange(value || "")
+  }
+
   return (
-    <div className="overlay rounded-md overflow-hidden w-full h-full shadow-4xl">
+    <div className="relative h-full w-full overflow-hidden">
       <Editor
-        height="70vh"
+        height="100%"
         width="100%"
+        defaultLanguage={language}
         language={language}
-        value={value}
-        onChange={onChange}
+        value={code}
         theme={theme}
-        beforeMount={handleEditorWillMount}
+        onChange={handleEditorChange}
         options={{
-          minimap: { enabled: false },
           fontSize: 14,
-          lineNumbers: "on",
-          roundedSelection: false,
+          minimap: { enabled: false },
           scrollBeyondLastLine: false,
+          scrollbar: {
+            vertical: 'visible',
+            horizontal: 'visible',
+            verticalScrollbarSize: 10,
+            horizontalScrollbarSize: 10,
+          },
+          overviewRulerBorder: false,
+          hideCursorInOverviewRuler: true,
+          wordWrap: 'on',
+          lineNumbers: 'on',
+          renderLineHighlight: 'all',
           automaticLayout: true,
-          wordWrap: "on",
-          wrappingStrategy: "advanced",
         }}
       />
     </div>

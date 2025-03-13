@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Share2, Layout, Plus, Download, Smartphone, Monitor, Wand2, Copy, RefreshCw, ExternalLink, Maximize2, Check, Github, Twitter, Link, GripVertical, X, ChevronRight, Menu, FolderPlus, FilePlus } from "lucide-react"
+import { Share2, Layout, Plus, Download, Smartphone, Monitor, Wand2, Copy, RefreshCw, ExternalLink, Maximize2, Check, Github, Twitter, Link, GripVertical, X, ChevronRight, Menu, FolderPlus, FilePlus, Minimize2 } from "lucide-react"
 import { QRCodeSVG } from 'qrcode.react'
 import { Button } from "@/components/ui/button"
 import { ThemeDropdown } from "@/components/ui/theme-dropdown"
@@ -42,6 +42,11 @@ import { cn } from "@/lib/utils"
 import { ShareDialog } from "@/components/ui/share-dialog"
 import { TemplateDialog } from "@/components/ui/template-dialog"
 import { defineTheme } from "@/app/lib/defineTheme"
+import { AIGenerationDialog } from "@/app/components/ai-generation-dialog"
+
+interface Files {
+  [key: string]: string;
+}
 
 const FILE_EXTENSIONS = [
   { value: "html", label: ".html" },
@@ -55,8 +60,7 @@ const FILE_EXTENSIONS = [
   { value: "txt", label: ".txt" }
 ]
 
-const defaultFiles = {
-  "index.html": `<!DOCTYPE html>
+const defaultHtml = `<!DOCTYPE html>
 <html>
 <head>
   <title>My Web Page</title>
@@ -67,8 +71,9 @@ const defaultFiles = {
   <p>Start editing to see live changes!</p>
   <script src="script.js"></script>
 </body>
-</html>`,
-  "styles.css": `body {
+</html>`;
+
+const defaultCss = `body {
   font-family: system-ui, sans-serif;
   max-width: 800px;
   margin: 0 auto;
@@ -78,10 +83,16 @@ const defaultFiles = {
 
 h1 {
   color: #3B4371;
-}`,
-  "script.js": `// Your JavaScript code here
-console.log("Welcome to Syntax Studio!");`,
-}
+}`;
+
+const defaultJs = `// Your JavaScript code here
+console.log("Welcome to Syntax Studio!");`;
+
+const defaultFiles: Files = {
+  "index.html": defaultHtml,
+  "styles.css": defaultCss,
+  "script.js": defaultJs
+};
 
 const templatesData = Object.keys(templates).map((name) => ({
   name,
@@ -91,7 +102,7 @@ const templatesData = Object.keys(templates).map((name) => ({
 
 export default function WebPlaygroundPage() {
   const { data: session } = useSession()
-  const [files, setFiles] = useState(defaultFiles)
+  const [files, setFiles] = useState<Files>(defaultFiles)
   const [activeFile, setActiveFile] = useState("index.html")
   const [theme, setTheme] = useState<ThemeId>("vs-dark")
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
@@ -109,8 +120,12 @@ export default function WebPlaygroundPage() {
   const [remainingUses, setRemainingUses] = useState(3)
   const [currentFolder, setCurrentFolder] = useState("")
   const [folders, setFolders] = useState<Record<string, string[]>>({})
-  const [allowRootCreation, setAllowRootCreation] = useState(true);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [allowRootCreation, setAllowRootCreation] = useState(true)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [currentAction, setCurrentAction] = useState<string | null>(null)
+  const [showAiDialog, setShowAiDialog] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 640);
 
   const previewRef = useRef<{ updatePreview: () => void }>(null)
 
@@ -132,6 +147,33 @@ export default function WebPlaygroundPage() {
       })
     }
   }, [theme])
+
+  // Handle fullscreen changes
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(document.fullscreenElement !== null)
+    }
+    document.addEventListener("fullscreenchange", handleFullscreenChange)
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange)
+  }, [])
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+    
+    // Only add listener if window is defined (client-side)
+    if (typeof window !== 'undefined') {
+      // Set initial width
+      handleResize();
+
+      // Add event listener
+      window.addEventListener('resize', handleResize);
+
+      // Cleanup
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
 
   const handleThemeChange = (newTheme: ThemeId) => {
     setTheme(newTheme)
@@ -263,7 +305,7 @@ export default function WebPlaygroundPage() {
     const encoded = btoa(JSON.stringify(files))
     const url = `${window.location.origin}/web-playground?files=${encoded}`
     setShareUrl(url)
-    setShowShareDialogOpen(true)
+    setShareDialogOpen(true)
   }
 
   const handleCopyShareUrl = () => {
@@ -494,74 +536,72 @@ export default function WebPlaygroundPage() {
     }
   };
 
-  const generateCode = async (prompt: string) => {
-    setIsGenerating(true)
+  const handleAiGenerate = async (mode: 'generate' | 'improve', prompt: string) => {
     try {
-      const response = await fetch("/api/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt }),
-      })
+      setIsGenerating(true);
+      setCurrentAction('generate');
+
+      const response = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode,
+          prompt,
+          currentCode: mode === 'improve' ? files[activeFile] : undefined
+        })
+      });
 
       if (!response.ok) {
-        throw new Error("Failed to generate code")
+        throw new Error('Failed to generate code');
       }
 
-      const data = await response.json()
-      if (data.html) {
-        setFiles((prev) => ({
-          ...prev,
-          "index.html": data.html,
-        }))
+      const data = await response.json();
+      
+      if (mode === 'improve') {
+        handleFileChange(activeFile, data.files[getFileExtension(files[activeFile])]);
+      } else {
+        // Add each generated file to the editor
+        if (data.files.html) {
+          handleFileChange('index.html', data.files.html);
+        }
+        if (data.files.css) {
+          handleFileChange('styles.css', data.files.css);
+        }
+        if (data.files.js) {
+          handleFileChange('script.js', data.files.js);
+        }
+        // Set active file to index.html if it was generated
+        if (data.files.html) {
+          setActiveFile('index.html');
+        }
       }
-      if (data.css) {
-        setFiles((prev) => ({
-          ...prev,
-          "styles.css": data.css,
-        }))
-      }
-      if (data.js) {
-        setFiles((prev) => ({
-          ...prev,
-          "script.js": data.js,
-        }))
-      }
+
+      setShowAiDialog(false);
       toast({
-        title: "Code generated!",
-        description: "The code has been generated and added to your files.",
-      })
+        title: "Success",
+        description: mode === 'improve' ? "Code improved successfully" : "Code generated successfully",
+      });
     } catch (error) {
+      console.error('AI generation error:', error);
       toast({
         title: "Error",
         description: "Failed to generate code. Please try again.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsGenerating(false)
+      setIsGenerating(false);
+      setCurrentAction(null);
     }
-  }
+  };
 
-  const handleAiGenerate = async () => {
-    if (!aiPrompt) {
-      toast({
-        title: "Error",
-        description: "Please enter a prompt",
-        variant: "destructive",
-      })
-      return
+  const getFileExtension = (code: string): 'html' | 'css' | 'js' => {
+    if (code.includes('<!DOCTYPE html>') || code.includes('<html>')) {
+      return 'html';
+    } else if (code.includes('{') && code.includes('}') && !code.includes('function')) {
+      return 'css';
     }
-
-    setIsGenerating(true)
-    try {
-      await generateCode(aiPrompt)
-      setShowAiPrompt(false)
-      setAiPrompt("")
-    } finally {
-      setIsGenerating(false)
-    }
-  }
+    return 'js';
+  };
 
   const handleLoginRedirect = () => {
     const currentPath = window.location.pathname
@@ -576,10 +616,41 @@ export default function WebPlaygroundPage() {
     setCurrentFolder(folderPath)
   }
 
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        const element = document.documentElement
+        await element.requestFullscreen()
+      } else {
+        await document.exitFullscreen()
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to toggle fullscreen mode",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleShareViaQR = () => {
+    setShareDialogOpen(true);
+    setShareTab('qr');
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#3B4371] to-[#F3904F] p-2 sm:p-6">
-      <div className="container mx-auto">
-        <div className="mb-4 text-center">
+    <div className={cn(
+      "min-h-screen transition-all duration-200",
+      isFullscreen ? "bg-zinc-900" : "bg-gradient-to-br from-[#3B4371] to-[#F3904F] p-2 sm:p-6"
+    )}>
+      <div className={cn(
+        "container mx-auto",
+        isFullscreen && "h-screen p-0"
+      )}>
+        <div className={cn(
+          "mb-4 text-center",
+          isFullscreen && "hidden"
+        )}>
           <h1 className="text-2xl sm:text-3xl font-bold text-white">Syntax Studio Web Playground</h1>
           <p className="text-sm sm:text-base text-white/80 mt-2">
             Experience our interactive web development environment with live preview
@@ -596,11 +667,13 @@ export default function WebPlaygroundPage() {
                 </button>{" "}
                 for unlimited access.
               </p>
-              
             </div>
           )}
         </div>
-        <div className="rounded-lg border bg-card/95 backdrop-blur-sm text-card-foreground shadow-sm">
+        <div className={cn(
+          "rounded-lg border bg-card/95 backdrop-blur-sm text-card-foreground shadow-sm",
+          isFullscreen && "rounded-none h-screen"
+        )}>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-2 sm:p-3 border-b gap-2 sm:gap-0">
             <div className="flex items-center gap-2">
               <h2 className="text-base sm:text-lg font-semibold">Web Playground</h2>
@@ -639,7 +712,13 @@ export default function WebPlaygroundPage() {
                   <FilePlus className="h-4 w-4 mr-2" />
                   New File
                 </Button>
-                <Button variant="outline" size="default" onClick={() => setShowAiPrompt(true)}>
+                <Button
+                  variant="outline"
+                  size="default"
+                  className="bg-black/20 border-white/20 text-white hover:bg-black/30 hover:border-white/30"
+                  onClick={() => setShowAiDialog(true)}
+                  disabled={currentAction !== null}
+                >
                   <Wand2 className="h-4 w-4 mr-2" />
                   AI Generate
                 </Button>
@@ -672,7 +751,7 @@ export default function WebPlaygroundPage() {
                       <Plus className="mr-2 h-4 w-4" />
                       New File
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setShowAiPrompt(true)}>
+                    <DropdownMenuItem onClick={() => setShowAiDialog(true)}>
                       <Wand2 className="mr-2 h-4 w-4" />
                       AI Generate
                     </DropdownMenuItem>
@@ -683,13 +762,16 @@ export default function WebPlaygroundPage() {
           </div>
 
           <ResizablePanelGroup 
-            direction={window.innerWidth > 640 ? "horizontal" : "vertical"}
-            className="min-h-[calc(100vh-16rem)] sm:min-h-[calc(100vh-12rem)]"
+            direction={windowWidth > 640 ? "horizontal" : "vertical"}
+            className={cn(
+              "min-h-[calc(100vh-16rem)] sm:min-h-[calc(100vh-12rem)]",
+              isFullscreen && "h-[calc(100vh-3rem)]"
+            )}
           >
             <ResizablePanel 
               defaultSize={15} 
-              minSize={window.innerWidth > 640 ? 10 : 20} 
-              maxSize={window.innerWidth > 640 ? 30 : 40}
+              minSize={windowWidth > 640 ? 10 : 20} 
+              maxSize={windowWidth > 640 ? 30 : 40}
               className="min-h-[200px]"
             >
               <div className="h-full border-r sm:border-b-0">
@@ -709,7 +791,7 @@ export default function WebPlaygroundPage() {
               <GripVertical className="h-4 w-4" />
             </ResizableHandle>
             <ResizablePanel 
-              defaultSize={window.innerWidth > 640 ? 85 : 60}
+              defaultSize={windowWidth > 640 ? 85 : 60}
               className="min-h-[300px]"
             >
               <div className="h-full">
@@ -744,6 +826,25 @@ export default function WebPlaygroundPage() {
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Browser
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="default"
+                      onClick={toggleFullscreen}
+                      disabled={currentAction !== null}
+                      className="bg-black/20 border border-white/20 text-white hover:bg-black/30 hover:border-white/30 rounded-none"
+                    >
+                      {isFullscreen ? (
+                        <>
+                          <Minimize2 className="h-4 w-4 mr-2" />
+                          Exit Fullscreen
+                        </>
+                      ) : (
+                        <>
+                          <Maximize2 className="h-4 w-4 mr-2" />
+                          Fullscreen
+                        </>
+                      )}
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -931,6 +1032,14 @@ export default function WebPlaygroundPage() {
         </DialogContent>
       </Dialog>
 
+      <AIGenerationDialog
+        isOpen={showAiDialog}
+        onClose={() => setShowAiDialog(false)}
+        onGenerate={handleAiGenerate}
+        currentCode={files[activeFile]}
+        isLoading={isGenerating}
+      />
+
       <Dialog open={showAiPrompt} onOpenChange={setShowAiPrompt}>
         <DialogContent>
           <DialogHeader>
@@ -989,7 +1098,10 @@ export default function WebPlaygroundPage() {
         </DialogContent>
       </Dialog>
 
-      <footer className="mt-8 border-t border-white/10 pt-8">
+      <footer className={cn(
+        "mt-8 border-t border-white/10 pt-8",
+        isFullscreen && "hidden"
+      )}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-white/70">

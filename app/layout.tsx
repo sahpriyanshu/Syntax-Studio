@@ -8,7 +8,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { LandingGlowCursor } from "./components/landing-glow-cursor"
 import type React from "react"  
 import './globals.css'
-import { metadata } from './metadata'
+import './styles.css'
 
 const inter = Inter({ subsets: ["latin"] })
 

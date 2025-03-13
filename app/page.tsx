@@ -762,7 +762,7 @@ console.log(result); // Optimized code`}
               . All rights reserved.
             </p>
             <div className="flex space-x-4">
-              <Link href="https://github.com/syntax-studio" className="text-white hover:text-[#F3904F]">
+              <Link href="https://github.com/sahpriyanshu" className="text-white hover:text-[#F3904F]">
                 <Github className="h-5 w-5" />
               </Link>
               <Link href="https://twitter.com/syntax-studio" className="text-white hover:text-[#F3904F]">
