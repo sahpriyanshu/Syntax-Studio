@@ -15,6 +15,8 @@ import { toast } from "@/components/ui/use-toast"
 import { signIn } from "next-auth/react"
 import { cn } from "@/lib/utils"
 
+import { useSession } from "next-auth/react"
+
 export default function SignUpPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -25,6 +27,15 @@ export default function SignUpPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [passwordMatch, setPasswordMatch] = useState(true)
   const router = useRouter()
+  const { status } = useSession();
+
+  // Redirect authenticated users away from /signup
+  if (status === "authenticated") {
+    if (typeof window !== "undefined") {
+      router.replace("/");
+    }
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -51,7 +62,7 @@ export default function SignUpPage() {
     setPasswordMatch(true)
     // TODO: Implement actual sign-up logic here
     console.log("Sign-up attempt with:", { name, email, password })
-    router.push("/workspace")
+    router.push("/")
   }
 
   const togglePasswordVisibility = (field: "password" | "confirmPassword") => {
@@ -102,7 +113,7 @@ export default function SignUpPage() {
               <Button
                 variant="outline"
                 className="w-full bg-black/20 border-white/20 hover:bg-black/30 transition-colors duration-200"
-                onClick={() => signIn("google", { callbackUrl: "/workspace" })}
+                onClick={() => signIn("google", { callbackUrl: "/" })}
                 disabled={!agreedToTerms}
                 aria-label="Sign up with Google"
               >
@@ -117,7 +128,7 @@ export default function SignUpPage() {
               <Button
                 variant="outline"
                 className="w-full bg-black/20 border-white/20 hover:bg-black/30 transition-colors duration-200"
-                onClick={() => signIn("github", { callbackUrl: "/workspace" })}
+                onClick={() => signIn("github", { callbackUrl: "/" })}
                 disabled={!agreedToTerms}
                 aria-label="Sign up with GitHub"
               >

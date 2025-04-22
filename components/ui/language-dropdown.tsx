@@ -15,13 +15,18 @@ interface LanguageDropdownProps {
   language: LanguageId
   onLanguageChange: (language: LanguageId) => void
   variant?: "default" | "minimal"
+  className?: string
+  caretIcon?: React.ReactNode
 }
+
 
 export function LanguageDropdown({ 
   language, 
   onLanguageChange, 
-  variant = "default" 
-}: LanguageDropdownProps) {
+  variant = "default", 
+  className = "", 
+  caretIcon 
+}: LanguageDropdownProps & { className?: string, caretIcon?: React.ReactNode }) {
   const currentLanguage = languages.find((l) => l.id === language)
 
   return (
@@ -29,17 +34,19 @@ export function LanguageDropdown({
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            "flex h-9 items-center gap-1.5 rounded-md px-3 text-sm transition-colors",
-            variant === "default" 
-              ? "bg-white/5 hover:bg-white/10 border border-white/10"
-              : "hover:bg-white/5",
-            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
+            "flex items-center gap-2 h-10 px-4 rounded-md bg-zinc-900 border border-zinc-800 text-white text-sm font-medium hover:bg-zinc-800 hover:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-700 transition-colors duration-200",
+            className
           )}
+          type="button"
         >
-          <span className="text-white/80">
-            {currentLanguage?.name} ({currentLanguage?.version})
-          </span>
-          <ChevronDown className="h-4 w-4 text-white/60" />
+          {currentLanguage ? (
+            <>
+              <span className="text-white/80">
+                {currentLanguage.name} ({currentLanguage.version})
+              </span>
+              {caretIcon}
+            </>
+          ) : null}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

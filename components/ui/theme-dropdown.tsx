@@ -17,7 +17,8 @@ interface ThemeDropdownProps {
   variant?: "default" | "minimal"
 }
 
-export function ThemeDropdown({ theme, onThemeChange, variant = "default" }: ThemeDropdownProps) {
+
+export function ThemeDropdown({ theme, onThemeChange, variant = "default", className = "", caretIcon }: ThemeDropdownProps & { className?: string, caretIcon?: React.ReactNode }) {
   const allThemes = [...editorThemes.dark, ...editorThemes.light]
   const currentTheme = allThemes.find((t) => t.id === theme)
 
@@ -26,15 +27,17 @@ export function ThemeDropdown({ theme, onThemeChange, variant = "default" }: The
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            "flex h-9 items-center gap-1.5 px-3 text-sm transition-colors",
-            variant === "default" 
-              ? "bg-black/20 hover:bg-black/30 border border-white/20 hover:border-white/30 text-white"
-              : "hover:bg-black/20",
-            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white"
+            "flex items-center gap-2 h-10 px-4 rounded-md bg-zinc-900 border border-zinc-800 text-white text-sm font-medium hover:bg-zinc-800 hover:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-700 transition-colors duration-200",
+            className
           )}
+          type="button"
         >
-          <span>{currentTheme?.name}</span>
-          <ChevronDown className="h-4 w-4" />
+          {currentTheme ? (
+            <>
+              <span>{currentTheme.name}</span>
+              {caretIcon || <ChevronDown className="ml-2 text-white h-4 w-4" />}
+            </>
+          ) : null}
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

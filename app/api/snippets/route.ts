@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth/next"
 import { authOptions } from "@/lib/auth"
-
-// In-memory storage for snippets (this will reset on server restart)
-const snippets: any[] = []
+import { supabase } from "@/lib/supabase"
 
 export async function GET(req: Request) {
   const session = await getServerSession(authOptions)
@@ -11,9 +9,17 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  // Filter snippets for the current user
-  const userSnippets = snippets.filter((snippet) => snippet.userId === session.user.id)
-  return NextResponse.json(userSnippets)
+  const { data: snippets, error } = await supabase
+    .from('snippets')
+    .select('*')
+    .eq('userId', session.user.id)
+    .order('createdAt', { ascending: false })
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json(snippets)
 }
 
 export async function POST(req: Request) {
@@ -23,16 +29,24 @@ export async function POST(req: Request) {
   }
 
   const { title, code, language } = await req.json()
-  const newSnippet = {
-    id: Date.now().toString(),
-    title,
-    code,
-    language,
-    userId: session.user.id,
-    createdAt: new Date().toISOString(),
+  
+  const { data: snippet, error } = await supabase
+    .from('snippets')
+    .insert([
+      {
+        title,
+        code,
+        language,
+        userId: session.user.id,
+      }
+    ])
+    .select()
+    .single()
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  snippets.push(newSnippet)
-  return NextResponse.json(newSnippet)
+  return NextResponse.json(snippet)
 }
 

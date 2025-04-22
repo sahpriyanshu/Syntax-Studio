@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Share2, Layout, Plus, Download, Smartphone, Monitor, Wand2, Copy, RefreshCw, ExternalLink, Maximize2, Check, Github, Twitter, Link, GripVertical, X, ChevronRight, Menu, FolderPlus, FilePlus, Minimize2 } from "lucide-react"
+import { Share2, Layout, Plus, Download, Smartphone, Monitor, Wand2, Copy, RefreshCw, ExternalLink, Maximize2, Check, Github, Twitter, GripVertical, X, ChevronRight, Menu, FolderPlus, FilePlus, Minimize2 } from "lucide-react"
 import { QRCodeSVG } from 'qrcode.react'
 import { Button } from "@/components/ui/button"
 import { ThemeDropdown } from "@/components/ui/theme-dropdown"
@@ -34,6 +34,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/componen
 import { Separator } from "@/components/ui/separator"
 import { toast } from "@/components/ui/use-toast"
 import { useSession } from "next-auth/react"
+import Link from "next/link"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Spinner } from "@/components/ui/spinner"
 import { Label } from "@/components/ui/label"
@@ -101,7 +102,7 @@ const templatesData = Object.keys(templates).map((name) => ({
 }))
 
 export default function WebPlaygroundPage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const [files, setFiles] = useState<Files>(defaultFiles)
   const [activeFile, setActiveFile] = useState("index.html")
   const [theme, setTheme] = useState<ThemeId>("vs-dark")
@@ -117,7 +118,7 @@ export default function WebPlaygroundPage() {
   const [aiPrompt, setAiPrompt] = useState("")
   const [previewFile, setPreviewFile] = useState("index.html")
   const [shareTab, setShareTab] = useState<'link' | 'qr' | 'download'>('link')
-  const [remainingUses, setRemainingUses] = useState(3)
+  const [usageCount, setUsageCount] = useState(0)
   const [currentFolder, setCurrentFolder] = useState("")
   const [folders, setFolders] = useState<Record<string, string[]>>({})
   const [allowRootCreation, setAllowRootCreation] = useState(true)
@@ -180,24 +181,24 @@ export default function WebPlaygroundPage() {
     localStorage.setItem("web-playground-theme", newTheme)
   }
 
-  // Load remaining uses from localStorage on mount
+  // Load usage count from localStorage on mount
   React.useEffect(() => {
     if (!session) {
-      const storedUses = localStorage.getItem('webPlaygroundRemainingUses')
-      if (storedUses !== null) {
-        setRemainingUses(parseInt(storedUses))
+      const storedCount = localStorage.getItem('webPlaygroundUsageCount');
+      if (storedCount !== null) {
+        setUsageCount(parseInt(storedCount));
       } else {
-        localStorage.setItem('webPlaygroundRemainingUses', '3')
+        localStorage.setItem('webPlaygroundUsageCount', '0');
       }
     }
-  }, [session])
+  }, [session]);
 
-  // Update localStorage when uses change
+  // Update localStorage when usageCount changes
   React.useEffect(() => {
     if (!session) {
-      localStorage.setItem('webPlaygroundRemainingUses', remainingUses.toString())
+      localStorage.setItem('webPlaygroundUsageCount', usageCount.toString());
     }
-  }, [remainingUses, session])
+  }, [usageCount, session]);
 
   const handleFileChange = (fileName: string, content: string) => {
     setFiles((prev) => ({
@@ -605,7 +606,7 @@ export default function WebPlaygroundPage() {
 
   const handleLoginRedirect = () => {
     const currentPath = window.location.pathname
-    window.location.href = `http://localhost:3000/login?callbackUrl=${encodeURIComponent(currentPath)}`
+    window.location.href = "http://localhost:3000/login";
   }
 
   const handleSignupRedirect = () => {
@@ -655,20 +656,15 @@ export default function WebPlaygroundPage() {
           <p className="text-sm sm:text-base text-white/80 mt-2">
             Experience our interactive web development environment with live preview
           </p>
-          {!session && (
-            <div className="text-xs sm:text-sm text-white/80 mt-2">
-              <p>
-                You have {remainingUses} free uses left.{" "}
-                <button
-                  onClick={handleLoginRedirect}
-                  className="underline hover:text-white"
-                >
-                  Log in
-                </button>{" "}
-                for unlimited access.
-              </p>
-            </div>
-          )}
+          {status !== "authenticated" && (
+  <p className="text-sm text-white/60">
+    You have {3 - usageCount} free uses left.{" "}
+    <Link href="/login" className="underline">
+      Log in
+    </Link>{" "}
+    for unlimited access.
+  </p>
+)}
         </div>
         <div className={cn(
           "rounded-lg border bg-card/95 backdrop-blur-sm text-card-foreground shadow-sm",
@@ -794,10 +790,10 @@ export default function WebPlaygroundPage() {
               defaultSize={windowWidth > 640 ? 85 : 60}
               className="min-h-[300px]"
             >
-              <div className="h-full">
-                <div className="h-full flex flex-col">
-                  <div className="flex-1 p-2 sm:p-4">
-                    <div className="rounded-md border h-full">
+              <div className="h-full overflow-hidden">
+                <div className="h-full flex flex-col overflow-hidden">
+                  <div className="flex-1 p-2 sm:p-4 overflow-hidden">
+                    <div className="rounded-md border h-full overflow-hidden">
                       <CodeEditor
                         value={files[activeFile] || ""}
                         onChange={(value) => handleFileChange(activeFile, value || "")}

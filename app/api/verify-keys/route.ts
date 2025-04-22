@@ -32,12 +32,13 @@ async function verifyGithubAuth() {
   }
 }
 
+import { supabase } from '@/lib/supabase'
+
 async function verifyDatabase() {
   try {
-    const { PrismaClient } = require("@prisma/client")
-    const prisma = new PrismaClient()
-    await prisma.$connect()
-    await prisma.$disconnect()
+    // Try a simple query to check if Supabase is working (adjust table name if needed)
+    const { error } = await supabase.from('users').select('id').limit(1)
+    if (error) throw error
     return true
   } catch (error) {
     return false

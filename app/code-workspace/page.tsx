@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { motion } from "framer-motion"
-import { Wand2, Bot, Share2, Play, ChevronLeft, ChevronRight, Lightbulb, X, Download } from "lucide-react"
+import { Wand2, Bot, Share2, Play, ChevronLeft, ChevronRight, Lightbulb, X, Download, Maximize2, Minimize2, Menu, ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CodeEditor } from "../workspace/components/editor"
@@ -22,6 +22,8 @@ import { defineTheme } from "@/app/lib/defineTheme"
 import { ThemeId } from "@/lib/themes"
 import { cn } from "@/lib/utils"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { QRCodeSVG } from 'qrcode.react';
 import { ShareDialog } from "@/app/components/share-dialog"
@@ -103,6 +105,8 @@ export default function WorkspacePage() {
   const [history, setHistory] = useState<{ code: string; language: Language }[]>([])
   const [currentHistoryIndex, setCurrentHistoryIndex] = useState(-1)
   const [shareUrl, setShareUrl] = useState("")
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isFullscreenSupported, setIsFullscreenSupported] = useState(false)
 
   useEffect(() => {
     const langParam = searchParams.get("language")
@@ -513,71 +517,194 @@ Generated with Syntax Studio
     }
   }
 
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen()
+      setIsFullscreen(true)
+    } else {
+      document.exitFullscreen()
+      setIsFullscreen(false)
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#3B4371] to-[#F3904F] p-4 md:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        <motion.div
-          className="text-center space-y-2"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="text-2xl md:text-3xl font-bold text-white">Syntax Studio Code Workspace</h1>
-          <p className="text-base md:text-xl text-white/80">
-            Experience our AI-powered code optimization and compilation environment
-          </p>
-          {status !== "authenticated" && (
-            <p className="text-sm text-white/60">
-              You have {3 - usageCount} free uses left.{" "}
-              <Link href="/login" className="underline">
-                Log in
-              </Link>{" "}
-              for unlimited access.
+    <div className={cn(
+      "min-h-screen transition-all duration-200",
+      isFullscreen ? "bg-black" : "bg-gradient-to-br from-[#3B4371] to-[#F3904F] p-4 md:p-8"
+    )}>
+      <div className={cn(
+        "max-w-7xl mx-auto space-y-8",
+        isFullscreen && "h-screen"
+      )}>
+        {!isFullscreen && (
+          <motion.div
+            className="text-center space-y-2"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h1 className="text-2xl md:text-3xl font-bold text-white">Syntax Studio Code Workspace</h1>
+            <p className="text-base md:text-xl text-white/80">
+              Experience our AI-powered code optimization and compilation environment
             </p>
-          )}
-        </motion.div>
-        <Card>
-          <CardHeader className="border-b">
+            {status !== "authenticated" && (
+              <p className="text-sm text-white/60">
+                You have {3 - usageCount} free uses left.{" "}
+                <Link href="/login" className="underline">
+                  Log in
+                </Link>{" "}
+                for unlimited access.
+              </p>
+            )}
+          </motion.div>
+        )}
+        <Card className={cn(
+          "transition-all duration-200 h-full",
+          isFullscreen && "rounded-none border-0 shadow-none"
+        )}>
+          <CardHeader className={cn(
+            "border-b bg-zinc-900/50",
+            isFullscreen && "border-white/10"
+          )}>
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <CardTitle>Code Workspace</CardTitle>
-                <CardDescription>Write, compile, and analyze your code</CardDescription>
+                <h2 className="text-sm font-semibold text-white">Code Workspace</h2>
+                <p className="text-xs text-white/80">Write, compile, and analyze your code</p>
               </div>
-              <div className="flex items-center gap-0.5 sm:gap-2">
-                <LanguagesDropdown
-                  language={language}
-                  onSelectChange={(lang: Language) => handleLanguageChange(lang)}
-                />
-                <Button
-                  onClick={() => setShowShareDialog(true)}
-                  variant="outline"
-                  disabled={currentAction !== null}
-                  className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border h-[28px] px-3 bg-black/20 border-white/20 text-white hover:bg-black/30 hover:border-white/30 disabled:opacity-50 disabled:pointer-events-none"
-                  title="Share Code"
-                  aria-label={currentAction === "share" ? "Sharing code..." : "Share code"}
-                >
-                  {currentAction === "share" ? (
-                    <>
-                      <Spinner className="mr-2 h-4 w-4" aria-hidden="true" />
-                      <span>Sharing...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Share2 className="mr-2 h-4 w-4" aria-hidden="true" />
-                      <span>Share</span>
-                    </>
-                  )}
-                </Button>
-                <ThemeDropdown
-                  theme={theme}
-                  onThemeChange={handleThemeChange}
-                  variant="minimal"
-                />
+              <div className="flex items-center gap-2">
+                <div className="hidden sm:flex items-center gap-0.5 sm:gap-2">
+                  <LanguagesDropdown
+                    language={language}
+                    onSelectChange={(lang: Language) => handleLanguageChange(lang)}
+                  />
+                  <Button
+                    onClick={() => setShowShareDialog(true)}
+                    variant="outline"
+                    disabled={currentAction !== null}
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium h-10 px-4 rounded-md bg-zinc-900 border border-zinc-800 text-white hover:bg-zinc-800 hover:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-700 transition-colors duration-200"
+                    title="Share Code"
+                  >
+                    <Share2 className="h-4 w-4" aria-hidden="true" />
+                    <span>Share</span>
+                  </Button>
+                  <Button
+                    onClick={toggleFullscreen}
+                    variant="outline"
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium h-10 px-4 rounded-md bg-zinc-900 border border-zinc-800 text-white hover:bg-zinc-800 hover:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-700 transition-colors duration-200"
+                    title={isFullscreen ? "Exit Fullscreen" : "Fullscreen"}
+                  >
+                    {isFullscreen ? (
+                      <>
+                        <Minimize2 className="h-4 w-4" />
+                        <span>Exit Fullscreen</span>
+                      </>
+                    ) : (
+                      <>
+                        <Maximize2 className="h-4 w-4" />
+                        <span>Fullscreen</span>
+                      </>
+                    )}
+                  </Button>
+                  <ThemeDropdown
+                    theme={theme}
+                    onThemeChange={handleThemeChange}
+                    variant="minimal"
+                    className="flex items-center gap-2 h-10 px-4 rounded-md bg-zinc-900 border border-zinc-800 text-white text-sm hover:bg-zinc-800 hover:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-zinc-700 transition-colors duration-200"
+                    caretIcon={<ChevronDown className="ml-2 text-white h-4 w-4" />}
+                  />
+                </div>
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="sm:hidden inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium transition-colors focus-visible:outline-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border h-[28px] w-[28px] p-0 bg-black/20 border-white/20 text-white hover:bg-black/30 hover:border-white/30"
+                    >
+                      <Menu className="h-4 w-4" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-[240px] bg-zinc-900 border-white/10 p-0">
+                    <div className="flex flex-col gap-2 p-4">
+                      <div className="flex flex-col gap-1">
+                        <p className="text-sm font-medium text-white">Language</p>
+                        <Select
+                          value={language.value}
+                          onValueChange={(value) => {
+                            const lang = languageOptions.find(l => l.value === value);
+                            if (lang) handleLanguageChange(lang);
+                          }}
+                        >
+                          <SelectTrigger className="w-full bg-black/20 border-white/20 text-white">
+                            <SelectValue placeholder="Select language" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-zinc-900 border-white/10">
+                            {languageOptions.map((lang) => (
+                              <SelectItem key={lang.value} value={lang.value}>
+                                <div className="flex items-center gap-2">
+                                  <img src={lang.icon} alt={lang.label} className="w-4 h-4" />
+                                  <span>{lang.label}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <p className="text-sm font-medium text-white">Theme</p>
+                        <Select
+                          value={theme}
+                          onValueChange={(value) => handleThemeChange(value as ThemeId)}
+                        >
+                          <SelectTrigger className="w-full bg-black/20 border-white/20 text-white">
+                            <SelectValue placeholder="Select theme" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-zinc-900 border-white/10">
+                            <SelectItem value="vs-dark">Dark</SelectItem>
+                            <SelectItem value="light">Light</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <Button
+                          onClick={() => setShowShareDialog(true)}
+                          variant="outline"
+                          disabled={currentAction !== null}
+                          className="w-full bg-black/20 border-white/20 text-white hover:bg-black/30 hover:border-white/30 h-9"
+                        >
+                          <Share2 className="mr-2 h-4 w-4" />
+                          Share Code
+                        </Button>
+                        <Button
+                          onClick={toggleFullscreen}
+                          variant="outline"
+                          className="w-full bg-zinc-900 border-zinc-800 text-white hover:bg-zinc-800 hover:border-zinc-700 h-9 inline-flex items-center justify-center gap-2"
+                        >
+                          {isFullscreen ? (
+                            <>
+                              <Minimize2 className="h-4 w-4" />
+                              <span>Exit Fullscreen</span>
+                            </>
+                          ) : (
+                            <>
+                              <Maximize2 className="h-4 w-4" />
+                              <span>Fullscreen</span>
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  </SheetContent>
+                </Sheet>
               </div>
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            <ResizablePanelGroup direction="vertical" className="min-h-[600px] rounded-lg border">
+            <ResizablePanelGroup 
+              direction="vertical" 
+              className={cn(
+                "min-h-[600px] rounded-lg border",
+                isFullscreen && "rounded-none border-white/10"
+              )}
+            >
               <ResizablePanel defaultSize={70}>
                 <div className="h-full flex flex-col">
                   <div className="flex-grow overflow-hidden">
@@ -764,10 +891,13 @@ Generated with Syntax Studio
         />
 
         {/* Workspace-specific footer */}
-        <footer className="mt-8 border-t border-white/10 pt-8">
+        <footer className={cn(
+          "mt-8 border-t border-white/10 pt-8",
+          isFullscreen && "hidden"
+        )}>
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <p className="text-sm text-white/70"> 2025 Syntax Studio. All rights reserved.</p>
+              <p className="text-sm text-white/70">© 2025 Syntax Studio. All rights reserved.</p>
               <div className="flex gap-4">
                 <Link href="/privacy" className="text-sm text-white/70 hover:text-white">
                   Privacy Policy

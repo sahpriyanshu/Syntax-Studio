@@ -19,8 +19,7 @@ export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
 
   const handleLogin = () => {
-    const currentPath = window.location.pathname
-    window.location.href = `http://localhost:3000/login?callbackUrl=${encodeURIComponent(currentPath)}`
+    window.location.href = "http://localhost:3000/login";
   }
 
   const handleSignup = () => {
@@ -89,29 +88,42 @@ export function Navigation() {
           {session ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <img
-                    className="rounded-full"
-                    src={session?.user?.image || "/placeholder-avatar.png"}
-                    alt={session?.user?.name || "User avatar"}
-                  />
+                <Button 
+                  variant="ghost" 
+                  className="relative h-10 w-10 rounded-full p-0 ring-2 ring-zinc-800 hover:ring-zinc-700"
+                >
+                  {session?.user?.image ? (
+                    <img
+                      className="rounded-full h-10 w-10 object-cover"
+                      src={session.user.image}
+                      alt={session.user.name || "User avatar"}
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="rounded-full h-10 w-10 bg-zinc-800 flex items-center justify-center text-white">
+                      {session?.user?.name?.charAt(0) || "U"}
+                    </div>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuContent 
+                className="w-56 bg-zinc-900 border border-zinc-800 text-white" 
+                align="end" 
+                sideOffset={8}
+                forceMount
+              >
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{session?.user?.name}</p>
-                    <p className="text-xs leading-none text-muted-foreground">
+                    <p className="text-sm font-medium text-white leading-none">{session?.user?.name}</p>
+                    <p className="text-xs text-zinc-400 leading-none">
                       {session?.user?.email}
                     </p>
                   </div>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link href="/settings">Settings</Link>
-                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-zinc-800" />
+                
                 <DropdownMenuItem
-                  className="cursor-pointer"
+                  className="cursor-pointer text-white hover:bg-zinc-800 focus:bg-zinc-800"
                   onClick={() => signOut({ callbackUrl: "/" })}
                 >
                   Sign out

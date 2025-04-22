@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useSearchParams } from "next/navigation"
@@ -14,6 +14,8 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { toast } from "@/components/ui/use-toast"
 import { signIn } from "next-auth/react"
 
+import { useSession } from "next-auth/react"
+
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -22,7 +24,18 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
-  const callbackUrl = searchParams?.get("callbackUrl") || "/workspace"
+  const { status } = useSession();
+
+  // Redirect authenticated users away from /login
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/");
+    }
+  }, [status, router]);
+
+  if (status === "authenticated") {
+    return null;
+  }
 
   const handleSocialLogin = (provider: "google" | "github") => {
     if (!agreedToTerms) {
@@ -33,7 +46,7 @@ export default function LoginPage() {
       })
       return
     }
-    signIn(provider, { callbackUrl })
+    signIn(provider)
   }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -51,7 +64,6 @@ export default function LoginPage() {
         email: formData.get("email") as string,
         password: formData.get("password") as string,
         redirect: false,
-        callbackUrl,
       })
 
       if (result?.error) {
@@ -61,7 +73,7 @@ export default function LoginPage() {
           variant: "destructive",
         })
       } else {
-        router.push(callbackUrl)
+        router.push("/")
       }
     } catch (error) {
       toast({

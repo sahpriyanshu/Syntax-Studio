@@ -29,23 +29,25 @@ export function ShareDialog({ open, onOpenChange, url, onDownload }: ShareDialog
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#141414] border-[#2C2C2C] text-white sm:max-w-[425px] p-6" closeButton={false}>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Share Code</h2>
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="h-6 w-6 text-zinc-500 hover:text-white hover:bg-transparent -mr-2"
-              onClick={() => onOpenChange(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
+      <DialogContent className="bg-[#141414] border-[#2C2C2C] text-white sm:max-w-[425px] p-6">
+        <DialogHeader>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <DialogTitle className="text-xl font-semibold">Share Code</DialogTitle>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-6 w-6 text-zinc-500 hover:text-white hover:bg-transparent -mr-2"
+                onClick={() => onOpenChange(false)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <DialogDescription className="text-zinc-400 text-sm">
+              Share your code with others using any of these methods
+            </DialogDescription>
           </div>
-          <p className="text-zinc-400 text-sm">
-            Share your code with others using any of these methods
-          </p>
-        </div>
+        </DialogHeader>
 
         <div className="flex overflow-hidden rounded-md bg-[#2C2C2C] p-1 mt-4">
           {(["link", "qr", "download"] as const).map((tab) => (

@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
-import { getToken } from "next-auth/jwt"
+import { createClient } from "@/lib/supabase-auth"
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request })
-  const isAuthenticated = !!token
+  const supabase = createClient(request)
+  const { data: { session } } = await supabase.auth.getSession()
+  const isAuthenticated = !!session
 
   // Paths that require authentication
   const protectedPaths = ["/workspace", "/settings", "/snippets"]

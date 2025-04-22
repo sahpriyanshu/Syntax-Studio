@@ -7,8 +7,12 @@ syntax-studio/
 │   │   │   └── route.ts               # Handles direct code execution
 │   │   ├── judge0/                     # Judge0 API integration
 │   │   │   └── route.ts               # Advanced code execution with language support
-│   │   └── verify-keys/                # API key verification
-│   │       └── route.ts               # Validates API keys and permissions
+│   │   ├── verify-keys/                # API key verification
+│   │   │   └── route.ts               # Validates API keys and permissions
+│   │   └── auth/                       # Authentication API endpoints
+│   │       ├── signup/                 # User signup endpoint
+│   │       │   └── route.ts           # Handles user registration
+│   │       └── ...                    # (Other auth endpoints as needed)
 │   │
 │   ├── code-workspace/                 # Main code editor workspace
 │   │   ├── components/                 # Workspace-specific components
@@ -19,10 +23,17 @@ syntax-studio/
 │   │   ├── layout.tsx                 # Workspace layout configuration
 │   │   └── page.tsx                   # Main workspace page
 │   │
-│   ├── lib/                           # Shared utilities and configurations
+│   ├── signup/                         # Signup page
+│   │   └── page.tsx                   # User registration form/page
+│   ├── auth/                           # Authentication pages
+│   │   └── verify/                     # Email or account verification
+│   │       └── page.tsx               # Verification UI
+│   │
+│   ├── lib/                            # Shared utilities and configurations
 │   │   ├── judge0Config.ts            # Judge0 API configuration and fallback logic
 │   │   ├── defineTheme.ts             # Editor theme definitions
-│   │   └── utils.ts                   # Common utility functions
+│   │   ├── utils.ts                   # Common utility functions
+│   │   └── auth.ts                    # Authentication utility functions
 │   │
 │   ├── components/                     # Shared components
 │   │   ├── ui/                        # UI components (buttons, inputs, etc.)
